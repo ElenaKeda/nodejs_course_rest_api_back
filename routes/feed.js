@@ -21,6 +21,16 @@ router.post(
   asyncHandler(feedController.createPost),
 );
 
+// PUT /feed/post/:postId
+router.put(
+  "/post/:postId",
+  [...bodyCheckForFeedEntity],
+  asyncHandler(feedController.updatePost),
+);
+
+// DELETE /feed/post/:postId
+router.delete("/post/:postId", feedController.deletePost);
+
 // GET /feed/post/:postId
 router.get("/post/:postId", asyncHandler(feedController.getPost));
 

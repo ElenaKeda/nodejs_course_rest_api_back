@@ -2,7 +2,7 @@ const { validationResult } = require("express-validator");
 
 const Post = require("../models/post");
 const HttpError = require("../utils/http-error");
-const saveFile = require("../utils/file");
+const { saveFile, clearImage } = require("../utils/file");
 
 exports.getPosts = async (req, res, next) => {
   const posts = await Post.find();
@@ -53,5 +53,56 @@ exports.createPost = async (req, res, next) => {
   res.status(201).json({
     message: "Post created successfully!",
     post: createdPost,
+  });
+};
+
+exports.updatePost = async (req, res, next) => {
+  const postId = req.params.postId;
+  const title = req.body.title;
+  const content = req.body.content;
+
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    throw new HttpError("Post not found", 404);
+  }
+
+  post.title = title;
+  post.content = content;
+
+  if (req.files && req.files.image) {
+    const oldImageUrl = post.imageUrl;
+    const imageUrl = saveFile(req.files.image);
+
+    post.imageUrl = imageUrl;
+
+    clearImage(oldImageUrl);
+  }
+
+  const updatedPost = await post.save();
+
+  res.status(200).json({
+    message: "Post updated successfully!",
+    post: updatedPost,
+  });
+};
+
+exports.deletePost = async (req, res, next) => {
+  const postId = req.params.postId;
+
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    throw new HttpError("Post not found", 404);
+  }
+
+  if (post.imageUrl) {
+    await clearImage(post.imageUrl);
+  }
+
+  await Post.findByIdAndDelete(postId);
+
+  res.status(200).json({
+    message: "Post deleted successfully!",
   });
 };

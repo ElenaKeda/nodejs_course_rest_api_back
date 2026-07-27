@@ -14,4 +14,17 @@ const saveFile = (file) => {
   return `images/${fileName}`;
 };
 
-module.exports = saveFile;
+const clearImage = (filePath) => {
+  const fullPath = path.join(__dirname, "..", filePath);
+
+  fs.unlink(fullPath, (err) => {
+    if (err) {
+      console.log("Deleting image failed:", err);
+    }
+  });
+};
+
+module.exports = {
+  saveFile,
+  clearImage,
+};
