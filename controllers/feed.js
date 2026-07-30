@@ -3,13 +3,19 @@ const { validationResult } = require("express-validator");
 const Post = require("../models/post");
 const HttpError = require("../utils/http-error");
 const { saveFile, clearImage } = require("../utils/file");
+const { getPaginatedPosts } = require("../utils/pagination");
 
 exports.getPosts = async (req, res, next) => {
-  const posts = await Post.find();
+  const page = +req.query.page || 1;
+
+  const data = await getPaginatedPosts({}, page);
 
   res.status(200).json({
     message: "Fetched posts successfully!",
-    posts,
+    posts: data.posts,
+    totalItems: data.totalItems,
+    currentPage: data.currentPage,
+    itemsPerPage: data.itemsPerPage,
   });
 };
 

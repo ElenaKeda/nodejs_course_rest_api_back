@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 const fileUpload = require("express-fileupload");
 
+const authRoutes = require("./routes/auth");
 const feedRoutes = require("./routes/feed");
 const errorHandler = require("./middlewares/error-handler");
 
@@ -32,6 +33,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/auth", authRoutes);
 app.use("/feed", feedRoutes);
 
 app.use(errorHandler);
