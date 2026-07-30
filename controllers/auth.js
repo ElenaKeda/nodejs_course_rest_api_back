@@ -5,9 +5,13 @@ const User = require("../models/user");
 const HttpError = require("../utils/http-error");
 
 exports.signup = async (req, res) => {
-  const { email, password, name } = req.body;
+  const errors = validationResult(req);
 
-  console.log({ email, password, name });
+  if (!errors.isEmpty()) {
+    throw new HttpError("Validation failed! Please check your input.", 422);
+  }
+
+  const { email, password, name } = req.body;
 
   const existingUser = await User.findOne({
     email,
@@ -34,6 +38,12 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    throw new HttpError("Validation failed! Please check your input.", 422);
+  }
+
   const { email, password } = req.body;
 
   const user = await User.findOne({
