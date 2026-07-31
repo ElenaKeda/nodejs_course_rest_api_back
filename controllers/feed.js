@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 
 const Post = require("../models/post");
+const User = require("../models/user");
 const HttpError = require("../utils/http-error");
 const { saveFile, clearImage } = require("../utils/file");
 const { getPaginatedPosts } = require("../utils/pagination");
@@ -20,7 +21,7 @@ exports.getPosts = async (req, res, next) => {
 };
 
 exports.getPost = async (req, res, next) => {
-  const post = await Post.findById(req.params.postId);
+  const post = await Post.findById(req.params.postId).populate("creator");
 
   if (!post) {
     throw new HttpError("Post not found", 404);
@@ -50,11 +51,20 @@ exports.createPost = async (req, res, next) => {
     title,
     imageUrl,
     content,
-    // creator: req.userId,
-    creator: { name: "Test User" },
+    creator: req.userId,
   });
 
   const createdPost = await post.save();
+
+  const user = await User.findById(req.userId);
+
+  if (!user) {
+    throw new HttpError("User not found.", 404);
+  }
+
+  user.posts.push(createdPost._id);
+
+  await user.save();
 
   res.status(201).json({
     message: "Post created successfully!",
@@ -68,6 +78,10 @@ exports.updatePost = async (req, res, next) => {
   const content = req.body.content;
 
   const post = await Post.findById(postId);
+
+  if (post.creator.toString() !== req.userId) {
+    throw new HttpError("Not authorized!", 403);
+  }
 
   if (!post) {
     throw new HttpError("Post not found", 404);
@@ -102,11 +116,21 @@ exports.deletePost = async (req, res, next) => {
     throw new HttpError("Post not found", 404);
   }
 
+  if (post.creator.toString() !== req.userId) {
+    throw new HttpError("Not authorized!", 403);
+  }
+
   if (post.imageUrl) {
     await clearImage(post.imageUrl);
   }
 
   await Post.findByIdAndDelete(postId);
+
+  const user = await User.findById(req.userId);
+
+  user.posts.pull(postId);
+
+  await user.save();
 
   res.status(200).json({
     message: "Post deleted successfully!",

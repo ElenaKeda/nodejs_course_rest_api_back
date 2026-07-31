@@ -3,6 +3,7 @@ const { body } = require("express-validator");
 
 const feedController = require("../controllers/feed");
 const asyncHandler = require("../utils/async-handler");
+const isAuth = require("../middlewares/is-auth");
 
 const router = express.Router();
 
@@ -12,11 +13,12 @@ const bodyCheckForFeedEntity = [
 ];
 
 // GET /feed/posts
-router.get("/posts", asyncHandler(feedController.getPosts));
+router.get("/posts", isAuth, asyncHandler(feedController.getPosts));
 
 // POST /feed/post
 router.post(
   "/post",
+  isAuth,
   [...bodyCheckForFeedEntity],
   asyncHandler(feedController.createPost),
 );
@@ -24,14 +26,15 @@ router.post(
 // PUT /feed/post/:postId
 router.put(
   "/post/:postId",
+  isAuth,
   [...bodyCheckForFeedEntity],
   asyncHandler(feedController.updatePost),
 );
 
 // DELETE /feed/post/:postId
-router.delete("/post/:postId", feedController.deletePost);
+router.delete("/post/:postId", isAuth, asyncHandler(feedController.deletePost));
 
 // GET /feed/post/:postId
-router.get("/post/:postId", asyncHandler(feedController.getPost));
+router.get("/post/:postId", isAuth, asyncHandler(feedController.getPost));
 
 module.exports = router;
