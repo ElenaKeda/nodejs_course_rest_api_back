@@ -5,6 +5,7 @@ const User = require("../models/user");
 const HttpError = require("../utils/http-error");
 const { saveFile, clearImage } = require("../utils/file");
 const { getPaginatedPosts } = require("../utils/pagination");
+const { getIO } = require("../utils/socket");
 
 exports.getPosts = async (req, res, next) => {
   const page = +req.query.page || 1;
@@ -70,6 +71,11 @@ exports.createPost = async (req, res, next) => {
     message: "Post created successfully!",
     post: createdPost,
   });
+
+  getIO().emit("posts", {
+    action: "create",
+    post: createdPost,
+  });
 };
 
 exports.updatePost = async (req, res, next) => {
@@ -105,6 +111,12 @@ exports.updatePost = async (req, res, next) => {
     message: "Post updated successfully!",
     post: updatedPost,
   });
+
+  getIO().emit("posts", {
+    action: "update",
+    post: updatedPost,
+  });
+  console.log("SOCKET EMIT CREATE");
 };
 
 exports.deletePost = async (req, res, next) => {
@@ -134,5 +146,10 @@ exports.deletePost = async (req, res, next) => {
 
   res.status(200).json({
     message: "Post deleted successfully!",
+  });
+
+  getIO().emit("posts", {
+    action: "delete",
+    postId,
   });
 };
