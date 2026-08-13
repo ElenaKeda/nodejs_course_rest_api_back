@@ -10,11 +10,19 @@ const path = require("path");
 const fileUpload = require("express-fileupload");
 const http = require("http");
 const jwt = require("jsonwebtoken");
+const { createYoga } = require("graphql-yoga");
 
 const authRoutes = require("./routes/auth");
 const feedRoutes = require("./routes/feed");
 const errorHandler = require("./middlewares/error-handler");
 const socket = require("./utils/socket");
+const isAuth = require("./middlewares/is-auth");
+const schema = require("./graphql/schema");
+const resolver = require("./graphql/resolver");
+
+const yoga = createYoga({
+  schema,
+});
 
 const MONGO_DB_URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.ixpnbhi.mongodb.net/messages?retryWrites=true&w=majority`;
 
@@ -59,6 +67,8 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
+
+app.use("/graphql", yoga);
 
 app.use("/auth", authRoutes);
 app.use("/feed", feedRoutes);
