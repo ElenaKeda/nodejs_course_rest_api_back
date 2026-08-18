@@ -25,8 +25,30 @@ const typeDefs = `
     itemsPerPage: Int!
   }
 
+  type DeletePostResponse {
+    message: String!
+  }
+
   type Query {
     posts(page: Int): PostsData!
+    post(id: ID!): Post!
+  }
+
+  type Mutation {
+    createPost(
+      title: String!
+      content: String!
+      imageUrl: String!
+    ): Post!
+
+    updatePost(
+      postId: ID!
+      title: String!
+      content: String!
+      imageUrl: String!
+    ): Post!
+
+    deletePost(postId: ID!): DeletePostResponse!
   }
 `;
 
@@ -37,6 +59,13 @@ module.exports = makeExecutableSchema({
   resolvers: {
     Query: {
       posts: resolvers.posts,
+      post: resolvers.post,
+    },
+
+    Mutation: {
+      createPost: resolvers.createPost,
+      updatePost: resolvers.updatePost,
+      deletePost: resolvers.deletePost,
     },
   },
 });

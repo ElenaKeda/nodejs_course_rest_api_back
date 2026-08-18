@@ -22,6 +22,30 @@ const resolver = require("./graphql/resolver");
 
 const yoga = createYoga({
   schema,
+
+  context: ({ req }) => {
+    const authHeader = req.headers.authorization;
+
+    let userId = null;
+
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+
+      try {
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        userId = decodedToken.userId;
+      } catch (err) {
+        // invalid token
+        userId = null;
+      }
+    }
+
+    return {
+      req,
+      userId,
+    };
+  },
 });
 
 const MONGO_DB_URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.ixpnbhi.mongodb.net/messages?retryWrites=true&w=majority`;
