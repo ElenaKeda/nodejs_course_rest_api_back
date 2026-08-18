@@ -6,6 +6,9 @@ const typeDefs = `
     email: String!
     name: String!
     status: String!
+    posts: [Post!]
+    createdAt: String!
+    updatedAt: String!
   }
 
   type Post {
@@ -25,6 +28,18 @@ const typeDefs = `
     itemsPerPage: Int!
   }
 
+  input UserInputData {
+    email: String!
+    password: String!
+    name: String!
+  }
+
+  input PostInputData {
+    title: String!
+    content: String!
+    imageUrl: String!
+  }
+
   type DeletePostResponse {
     message: String!
   }
@@ -35,20 +50,16 @@ const typeDefs = `
   }
 
   type Mutation {
-    createPost(
-      title: String!
-      content: String!
-      imageUrl: String!
-    ): Post!
+    createPost(postInput: PostInputData!): Post!
 
     updatePost(
       postId: ID!
-      title: String!
-      content: String!
-      imageUrl: String!
+      postInput: PostInputData!
     ): Post!
 
     deletePost(postId: ID!): DeletePostResponse!
+
+    createUser(userInput: UserInputData!): User!
   }
 `;
 
@@ -66,6 +77,8 @@ module.exports = makeExecutableSchema({
       createPost: resolvers.createPost,
       updatePost: resolvers.updatePost,
       deletePost: resolvers.deletePost,
+
+      createUser: resolvers.createUser,
     },
   },
 });

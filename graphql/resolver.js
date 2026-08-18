@@ -1,7 +1,10 @@
+const bcrypt = require("bcryptjs");
+
 const Post = require("../models/post");
 const User = require("../models/user");
 const { getPaginatedPosts } = require("../utils/pagination");
 const HttpError = require("../utils/http-error");
+const { validateUserInput, validatePostInput } = require("./validators");
 
 const root = {
   posts: async (parent, args) => {
@@ -26,8 +29,38 @@ const root = {
   //   return await User.find().populate("posts");
   // },
 
+  createUser: async (parent, args) => {
+    const { email, password, name } = args.userInput;
+
+    validateUserInput({ email, password, name });
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      throw new HttpError("User already exists", 422);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const user = new User({
+      email,
+      password: hashedPassword,
+      name,
+    });
+
+    const createdUser = await user.save();
+
+    return createdUser;
+  },
+
   createPost: async (parent, args, context) => {
-    const { title, content, imageUrl } = args;
+    const { title, content, imageUrl } = args.postInput;
+
+    validatePostInput({
+      title,
+      content,
+      imageUrl,
+    });
 
     const user = await User.findById(context.userId);
 
@@ -53,7 +86,14 @@ const root = {
   },
 
   updatePost: async (parent, args, context) => {
-    const { postId, title, content, imageUrl } = args;
+    const { postId, postInput } = args;
+    const { title, content, imageUrl } = postInput;
+
+    validatePostInput({
+      title,
+      content,
+      imageUrl,
+    });
 
     const post = await Post.findById(postId);
 
@@ -65,8 +105,8 @@ const root = {
       throw new HttpError("Not authorized!", 403);
     }
 
-    post.title = title;
-    post.content = content;
+    post.title = title.trim();
+    post.content = content.trim();
     post.imageUrl = imageUrl;
 
     const updatedPost = await post.save();
